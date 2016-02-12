@@ -1,0 +1,13 @@
+{
+    "name": "wwwision/snippets",
+    "type": "typo3-flow-package",
+    "description": "Simple Flow package for managing templated snippets that can be used for email templates etc. Multi-tenant capable",
+    "require": {
+        "typo3/flow": "~3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Wwwision\\Snippets": "Classes"
+        }
+    }
+}

@@ -1,0 +1,12 @@
+Wwwision:
+  Snippets:
+    definitions: []
+#      'someSnippet':
+#        title: 'SomeSnippet Title'
+#        defaultSource: 'Default source for "someSnippet" with {placeholder}.'
+#        defaultVariables:
+#          'placeholder': 'default value'
+#        variableDefinitions:
+#          'placeholder':
+#            required: true
+#            type: string
