@@ -7,7 +7,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Wwwision\\Snippets": "Classes"
+            "Wwwision\\Snippets\\": "Classes"
         }
     }
 }
