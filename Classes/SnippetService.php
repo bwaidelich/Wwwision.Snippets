@@ -2,8 +2,9 @@
 namespace Wwwision\Snippets;
 
 use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Configuration\ConfigurationManager;
-use TYPO3\Flow\Mvc\Routing\RouterInterface;
+use TYPO3\Flow\Mvc\Routing\Router;
+use TYPO3\Flow\Utility\Arrays;
+use TYPO3\Flow\Utility\Files;
 use TYPO3\Fluid\View\StandaloneView;
 use Wwwision\Snippets\Domain\Model\Snippet;
 use Wwwision\Snippets\Domain\Model\SnippetDefinition;
@@ -28,6 +29,13 @@ class SnippetService
      */
     protected $snippetDefinitions;
 
+
+    /**
+     * @Flow\InjectConfiguration(path="templateRootPath")
+     * @var string
+     */
+    protected $templateRootPath;
+
     /**
      * @Flow\InjectConfiguration(type="Routes")
      * @var array
@@ -48,7 +56,7 @@ class SnippetService
 
     /**
      * @Flow\Inject
-     * @var RouterInterface
+     * @var Router
      */
     protected $router;
 
@@ -58,7 +66,7 @@ class SnippetService
     public function getSnippetDefinitions()
     {
         $snippetDefinitions = array();
-        foreach(array_keys($this->snippetDefinitions) as $snippetId) {
+        foreach (array_keys($this->snippetDefinitions) as $snippetId) {
             $snippetDefinitions[] = $this->getSnippetDefinition($snippetId);
         }
         return $snippetDefinitions;
@@ -73,7 +81,24 @@ class SnippetService
         if (!isset($this->snippetDefinitions[$snippetId])) {
             throw new \InvalidArgumentException(sprintf('No definition found for snippet "%s"!', $snippetId), 1455200031);
         }
-        return SnippetDefinition::fromArray($snippetId, $this->snippetDefinitions[$snippetId]);
+        $snippetDefinition = $this->snippetDefinitions[$snippetId];
+//        if (!isset($snippetDefinition['defaultSource'])) {
+//            $snippetDefinition['defaultSource'] = $this->loadDefaultSourceFromTemplate($snippetId);
+//        }
+        return SnippetDefinition::fromArray($snippetId, $snippetDefinition);
+    }
+
+    /**
+     * @param string $tenantId
+     * @return Snippet[]
+     */
+    public function getSnippets($tenantId)
+    {
+        $snippets = [];
+        foreach ($this->getSnippetDefinitions() as $snippetDefinition) {
+            $snippets[$snippetDefinition->getSnippetId()] = $this->getSnippet($snippetDefinition->getSnippetId(), $tenantId);
+        }
+        return $snippets;
     }
 
     /**
@@ -92,6 +117,28 @@ class SnippetService
 
     /**
      * @param string $snippetId
+     * @return string
+     * @throws \RuntimeException
+     */
+    private function loadDefaultSourceFromTemplate($snippetId)
+    {
+        if (!is_dir($this->templateRootPath)) {
+            throw new \RuntimeException(sprintf('Template root path "%s" does not exist.', $this->templateRootPath), 1456827589);
+        }
+        $snippetFileName = str_replace('.', DIRECTORY_SEPARATOR, $snippetId);
+        $possibleTemplatePaths = [];
+        $possibleTemplatePaths[] = Files::concatenatePaths([$this->templateRootPath, $snippetFileName . '.html']);
+        $possibleTemplatePaths[] = Files::concatenatePaths([$this->templateRootPath, $snippetFileName]);
+        foreach ($possibleTemplatePaths as $templatePathAndFilename) {
+            if (is_file($templatePathAndFilename)) {
+                return Files::getFileContents($templatePathAndFilename);
+            }
+        }
+        return '';
+    }
+
+    /**
+     * @param string $snippetId
      * @param string $tenantId
      * @param string $newSource
      * @return void
@@ -100,8 +147,12 @@ class SnippetService
     {
         $existingSnippetSource = $this->snippetSourceRepository->findOneByTenantIdAndSnippetId($tenantId, $snippetId);
         if ($existingSnippetSource !== null) {
-            $existingSnippetSource->update($newSource);
-            $this->snippetSourceRepository->update($existingSnippetSource);
+            if ($newSource === '') {
+                $this->snippetSourceRepository->remove($existingSnippetSource);
+            } else {
+                $existingSnippetSource->update($newSource);
+                $this->snippetSourceRepository->update($existingSnippetSource);
+            }
         } else {
             $snippetSource = new SnippetSource($tenantId, $snippetId, $newSource);
             $this->snippetSourceRepository->add($snippetSource);
@@ -119,29 +170,36 @@ class SnippetService
         $snippet = $this->getSnippet($snippetId, $tenantId);
         $view = $this->createStandaloneView();
         $view->setTemplateSource($snippet->getSource());
-        $view->assignMultiple($variables);
 
-        return $view->render();
+        $snippetDefinition = $snippet->getDefinition();
+        $convertedVariables = $snippetDefinition->convertVariables($variables);
+        $view->assignMultiple($convertedVariables);
+
+        $renderedSnippet = $view->render();
+        return preg_replace_callback('/\#\#\#SNIPPET_(.+)\#\#\#/', function(array $matches) use ($tenantId, $variables) {
+            return $this->render($matches[1], $tenantId, $variables);
+        }, $renderedSnippet);
     }
 
-	/**
+    /**
      * @param string $defaultPackageKey
-	 * @return StandaloneView
-	 */
-	protected function createStandaloneView($defaultPackageKey = null) {
-		// initialize router
-		$this->router->setRoutesConfiguration($this->routesConfiguration);
+     * @return StandaloneView
+     */
+    protected function createStandaloneView($defaultPackageKey = null)
+    {
+        // initialize router
+        $this->router->setRoutesConfiguration($this->routesConfiguration);
 
-		// initialize view
-		$standaloneView = new StandaloneView();
-		$actionRequest = $standaloneView->getRequest();
+        // initialize view
+        $standaloneView = new StandaloneView();
+        $actionRequest = $standaloneView->getRequest();
 
-		// inject TYPO3.Flow settings to fetch base URI configuration & set default package key
-		if (isset($this->flowSettings['http']['baseUri'])) {
-			$actionRequest->getHttpRequest()->setBaseUri($this->flowSettings['http']['baseUri']);
-		}
-		$actionRequest->setControllerPackageKey($defaultPackageKey);
+        // inject TYPO3.Flow settings to fetch base URI configuration & set default package key
+        if (isset($this->flowSettings['http']['baseUri'])) {
+            $actionRequest->getHttpRequest()->setBaseUri($this->flowSettings['http']['baseUri']);
+        }
+        $actionRequest->setControllerPackageKey($defaultPackageKey);
 
-		return $standaloneView;
-	}
+        return $standaloneView;
+    }
 }

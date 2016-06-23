@@ -1,11 +1,6 @@
 <?php
 namespace Wwwision\Snippets\Domain\Model;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Wwwision.Snippets".     *
- *                                                                        *
- *                                                                        */
-
 use TYPO3\Flow\Annotations as Flow;
 
 /**
@@ -14,7 +9,8 @@ use TYPO3\Flow\Annotations as Flow;
  * Note: This model is used like a DTO and will never be persisted!
  * @internal This class is not meant to be used in 3rd party code
  */
-class Snippet {
+class Snippet
+{
 
     /**
      * @var SnippetDefinition

@@ -1,11 +1,6 @@
 <?php
 namespace Wwwision\Snippets\Domain\Model;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Wwwision.Snippets".     *
- *                                                                        *
- *                                                                        */
-
 use TYPO3\Flow\Annotations as Flow;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -16,7 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
  * @internal This class is not meant to be used in 3rd party code
  * @Flow\Entity
  */
-class SnippetSource {
+class SnippetSource
+{
 
     /**
      * @var string

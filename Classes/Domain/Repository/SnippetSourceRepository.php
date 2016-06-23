@@ -1,11 +1,6 @@
 <?php
 namespace Wwwision\Snippets\Domain\Repository;
 
-/*                                                                        *
- * This script belongs to the TYPO3 Flow package "Wwwision.Snippets".     *
- *                                                                        *
- *                                                                        */
-
 use Doctrine\ORM\Mapping as ORM;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Persistence\Repository;
@@ -18,7 +13,8 @@ use Wwwision\Snippets\Domain\Model\SnippetSource;
  * @internal This class is not meant to be used in 3rd party code
  * @Flow\Scope("singleton")
  */
-class SnippetSourceRepository extends Repository {
+class SnippetSourceRepository extends Repository
+{
 
     /**
      * @param string $tenantId
@@ -35,8 +31,8 @@ class SnippetSourceRepository extends Repository {
                     $query->equals('snippetId', $snippetId)
                 ])
             )
-            ->execute()
-            ->getFirst();
+                ->execute()
+                ->getFirst();
     }
 
 
