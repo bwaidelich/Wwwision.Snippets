@@ -1,7 +1,7 @@
 <?php
 namespace Wwwision\Snippets\Domain\Model;
 
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 
 /**
  * A snippet with a source that may contain fluid directives

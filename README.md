@@ -1,5 +1,6 @@
 # Wwwision.Snippets
-Simple Flow package for managing templated snippets that can be used for email templates etc. Multi-tenant capable.
+
+Simple Neos Flow package for managing templated snippets that can be used for email templates etc. Multi-tenant capable.
 
 ## WIP
 

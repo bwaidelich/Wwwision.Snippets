@@ -1,11 +1,11 @@
 <?php
 namespace Wwwision\Snippets;
 
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Mvc\Routing\Router;
-use TYPO3\Flow\Utility\Arrays;
-use TYPO3\Flow\Utility\Files;
-use TYPO3\Fluid\View\StandaloneView;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Mvc\Routing\Router;
+use Neos\Utility\Arrays;
+use Neos\Utility\Files;
+use Neos\FluidAdaptor\View\StandaloneView;
 use Wwwision\Snippets\Domain\Model\Snippet;
 use Wwwision\Snippets\Domain\Model\SnippetDefinition;
 use Wwwision\Snippets\Domain\Model\SnippetSource;
@@ -43,7 +43,7 @@ class SnippetService
     protected $routesConfiguration;
 
     /**
-     * @Flow\InjectConfiguration(package="TYPO3.Flow")
+     * @Flow\InjectConfiguration(package="Neos.Flow")
      * @var array
      */
     protected $flowSettings;
@@ -194,7 +194,7 @@ class SnippetService
         $standaloneView = new StandaloneView();
         $actionRequest = $standaloneView->getRequest();
 
-        // inject TYPO3.Flow settings to fetch base URI configuration & set default package key
+        // inject Neos.Flow settings to fetch base URI configuration & set default package key
         if (isset($this->flowSettings['http']['baseUri'])) {
             $actionRequest->getHttpRequest()->setBaseUri($this->flowSettings['http']['baseUri']);
         }
